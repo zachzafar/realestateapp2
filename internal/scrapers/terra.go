@@ -3,6 +3,7 @@ package scraper
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"math/rand"
 	"os"
 	"regexp"
@@ -92,19 +93,19 @@ func (t TerraLuxury) Scrape() ([]property.Property, error) {
 
 	page := stealth.MustPage(browser)
 
-	page = page.Timeout(30 * time.Second)
+	p := page.Timeout(30 * time.Second)
 
 	// 3. Navigate
-	cursor := human.New(page, human.Casual())
+	cursor := human.New(p, human.Casual())
 
 	// doc, err := fetchPageWithAllListings(url)
 
-	if err := page.Navigate("https://terraluxury.com/our-properties/"); err != nil {
+	if err := p.Navigate("https://terraluxury.com/our-properties/"); err != nil {
 		return properties, fmt.Errorf("navigate: %w", err)
 	}
 
 	const selectorToWaitFor = `.ip-list-view-all a`
-	el, err := page.Element(selectorToWaitFor)
+	el, err := p.Element(selectorToWaitFor)
 	if err != nil {
 		return properties, fmt.Errorf("element not found: %w", err)
 	}
@@ -119,7 +120,7 @@ func (t TerraLuxury) Scrape() ([]property.Property, error) {
 
 	time.Sleep(time.Duration(2 * time.Second))
 	// get all 'a' tags
-	els, err := page.Elements(`.ip-search-result-item-inner a`)
+	els, err := p.Elements(`.ip-search-result-item-inner a`)
 
 	if err != nil {
 		return properties, fmt.Errorf("elements: %w", err)
@@ -141,29 +142,28 @@ func (t TerraLuxury) Scrape() ([]property.Property, error) {
 		// if strings.Contains(link, "property-enquiry") {
 		// 	continue
 		// }
-		page = page.Timeout(30 * time.Second)
+		p := page.Timeout(60 * time.Second)
 
-		page.Navigate(link)
+		p.Navigate(link)
 
-		if err := page.WaitLoad(); err != nil {
+		if err := p.WaitLoad(); err != nil {
 			return properties, err
 		}
 
 		time.Sleep((time.Duration(rand.Intn(4000)+2000) * time.Millisecond))
 
+		info, _ := p.Info()
+		log.Printf("link=%s url=%s title=%q", link, info.URL, info.Title)
 		// Get name
 		var name string
-		h1, err := page.Element("h1")
-		if err != nil {
-			return properties, fmt.Errorf("h1 not found %w", err)
+		if ok, h1, _ := p.Has("h1"); ok {
+			name, _ = h1.Text()
+			name = strings.TrimSpace(name)
 		}
-
-		name, err = h1.Text()
-		if err != nil {
-			return properties, err
+		if name == "" {
+			log.Printf("no h1 on %s (title %q), skipping", link, info.Title)
+			continue
 		}
-
-		name = strings.TrimSpace(name)
 
 		// Get images
 		var images []string
