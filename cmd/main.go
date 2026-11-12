@@ -13,6 +13,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+
 		log.Printf("scraped %d properties", len(properties))
 	}
 
