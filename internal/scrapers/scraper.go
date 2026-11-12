@@ -5,5 +5,5 @@ import (
 )
 
 type Scraper interface {
-	Scrape() (error, []property.Property)
+	Scrape() ([]property.Property, error)
 }

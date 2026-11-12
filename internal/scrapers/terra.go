@@ -22,13 +22,13 @@ import (
 type Terra struct {
 }
 
-func (t Terra) Scrape() ([]property.Property, error) {
+func (t Terra) Scrape() ( error[],property.Property) {
+	_ = os.RemoveAll("path")
 	var properties []property.Property
 	countries := []string{"barbados", "saint-lucia", "grenada", "trinidad"}
 
 	u := launcher.New().
 		UserDataDir("path").
-		Headless(true).
 		Headless(false).
 		MustLaunch()
 

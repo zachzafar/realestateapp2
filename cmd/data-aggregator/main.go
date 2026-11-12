@@ -7,10 +7,13 @@ import (
 )
 
 func main() {
-	scraper := scraper.TerraLuxury{}
-	properties, err := scraper.Scrape()
-	if err != nil {
-		log.Fatal(err)
+	scrapers := []scraper.Scraper{scraper.Terra{}, scraper.TerraLuxury{}}
+	for _, scraper := range scrapers {
+		properties, err := scraper.Scrape()
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("scraped %d properties", len(properties))
 	}
-	log.Printf("scraped %d properties", len(properties))
+
 }
