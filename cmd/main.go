@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	scrapers := []scraper.Scraper{scraper.Terra{}, scraper.TerraLuxury{}}
+	scrapers := []scraper.Scraper{scraper.Sothebys{}, scraper.Terra{}, scraper.TerraLuxury{}}
 	for _, scraper := range scrapers {
 		properties, err := scraper.Scrape()
 		if err != nil {
