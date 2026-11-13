@@ -22,7 +22,7 @@ import (
 type Terra struct {
 }
 
-func (t Terra) Scrape() ( error[],property.Property) {
+func (t Terra) Scrape() ([]property.Property, error) {
 	_ = os.RemoveAll("path")
 	var properties []property.Property
 	countries := []string{"barbados", "saint-lucia", "grenada", "trinidad"}
@@ -37,40 +37,47 @@ func (t Terra) Scrape() ( error[],property.Property) {
 
 	page := stealth.MustPage(browser)
 
-	page = page.Timeout(30 * time.Second)
+	page = page.Timeout(60 * time.Second)
 
 	// 3. Navigate
-	cursor := human.New(page, human.Casual())
+	// cursor := human.New(page, human.Casual())
 
 	for _, country := range countries {
-		url := fmt.Sprintf("https://terracaribbean.com/%s/properties/", country)
+		url := fmt.Sprintf("https://terracaribbean.com/%s/properties/?limit=10000", country)
 		// doc, err := fetchPageWithAllListings(url)
 
 		if err := page.Navigate(url); err != nil {
 			return properties, fmt.Errorf("navigate: %w", err)
 		}
 
-		const selectorToWaitFor = `.ip-list-view-all a`
-		el, err := page.Element(selectorToWaitFor)
+		page.MustWaitLoad()
+		page.MustWaitStable()
+
+		els, err := page.Elements(`.ip-search-main-result-item a`)
+
 		if err != nil {
-			return properties, fmt.Errorf("element not found: %w", err)
+			return properties, fmt.Errorf("elements: %w", err)
 		}
 
-		el.MustScrollIntoView()
+		var links []string
 
-		time.Sleep(time.Duration(rand.Intn(500)+300) * time.Millisecond)
+		for _, a := range els {
+			href, err := a.Attribute("href")
+			if err != nil || href == nil {
+				continue
+			}
 
-		if err := cursor.Click(el); err != nil {
-			return properties, fmt.Errorf("click failed: %w", err)
+			links = append(links, *href)
 		}
 
-		html, err := page.HTML()
-		if err != nil {
-			return properties, err
+		for _, link := range links {
+			p := page.Timeout(60 * time.Second)
+
+			p.Navigate(link)
+			time.Sleep(time.Duration(rand.Intn(500)+300) * time.Millisecond)
 		}
-
-		fmt.Println(html)
-
+		fmt.Print(links)
+		time.Sleep(time.Duration(10 * time.Second))
 	}
 	return properties, nil
 }
@@ -118,7 +125,6 @@ func (t TerraLuxury) Scrape() ([]property.Property, error) {
 		return properties, fmt.Errorf("click failed: %w", err)
 	}
 
-	time.Sleep(time.Duration(2 * time.Second))
 	// get all 'a' tags
 	els, err := p.Elements(`.ip-search-result-item-inner a`)
 

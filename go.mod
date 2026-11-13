@@ -8,6 +8,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
 	github.com/PuerkitoBio/goquery v1.11.0 // indirect
 	github.com/andybalholm/cascadia v1.3.3 // indirect
+	github.com/capsolver/capsolver-go v0.0.0-20251204081438-e4e07af23eae // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chromedp/cdproto v0.159.0 // indirect
 	github.com/chromedp/chromedp v0.23.0 // indirect
